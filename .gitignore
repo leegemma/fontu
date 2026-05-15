@@ -3,3 +3,9 @@ node_modules/
 .env
 *.log
 .vscode/
+
+# 라이선스 확인 권장 폰트 (사이트에 미포함)
+fonts/온글잎*.ttf
+fonts/Griun_Gyuwon-Rg.ttf
+fonts/Rix*.otf
+fonts/이서윤체.ttf

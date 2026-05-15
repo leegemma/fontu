@@ -39,8 +39,9 @@ const DEFAULT_PREVIEW = {
 
 async function loadFonts() {
   try {
-    const res = await fetch("fonts.json?v=5");
+    const res = await fetch("fonts.json?v=6");
     fonts = await res.json();
+    injectLocalFonts();
     injectGoogleFonts();
     refreshForLang();
   } catch (err) {
@@ -49,7 +50,47 @@ async function loadFonts() {
   }
 }
 
+function familyOf(f) {
+  return f.localFiles && f.localFiles.length ? f.fontFamily : f.googleFontFamily;
+}
+
+function encodePath(path) {
+  return path.split("/").map((p) => encodeURIComponent(p)).join("/");
+}
+
+function formatOf(path) {
+  const ext = path.split(".").pop().toLowerCase();
+  if (ext === "otf") return "opentype";
+  if (ext === "ttf") return "truetype";
+  if (ext === "woff2") return "woff2";
+  if (ext === "woff") return "woff";
+  return "truetype";
+}
+
+function injectLocalFonts() {
+  const localFonts = fonts.filter((f) => f.localFiles && f.localFiles.length && f.fontFamily);
+  if (!localFonts.length) return;
+
+  const css = localFonts
+    .map((f) =>
+      f.localFiles
+        .map((lf) => {
+          const url = encodePath(lf.path);
+          return `@font-face { font-family: "${f.fontFamily}"; src: url("${url}") format("${formatOf(lf.path)}"); font-weight: ${lf.weight || 400}; font-style: ${lf.style || "normal"}; font-display: swap; }`;
+        })
+        .join("\n")
+    )
+    .join("\n");
+
+  const style = document.createElement("style");
+  style.textContent = css;
+  document.head.appendChild(style);
+}
+
 function injectGoogleFonts() {
+  const googleFonts = fonts.filter((f) => f.googleFontFamily && !(f.localFiles && f.localFiles.length));
+  if (!googleFonts.length) return;
+
   const link = document.createElement("link");
   link.rel = "preconnect";
   link.href = "https://fonts.googleapis.com";
@@ -60,18 +101,17 @@ function injectGoogleFonts() {
   link2.crossOrigin = "";
   document.head.appendChild(link2);
 
-  const params = fonts
-    .filter((f) => f.googleFontFamily)
+  const params = googleFonts
     .map((f) => {
       const w = (f.weights && f.weights.length ? f.weights : [400]).join(";");
       return `family=${encodeURIComponent(f.googleFontFamily)}:wght@${w}`;
     })
     .join("&");
 
-  const css = document.createElement("link");
-  css.rel = "stylesheet";
-  css.href = `https://fonts.googleapis.com/css2?${params}&display=swap`;
-  document.head.appendChild(css);
+  const cssEl = document.createElement("link");
+  cssEl.rel = "stylesheet";
+  cssEl.href = `https://fonts.googleapis.com/css2?${params}&display=swap`;
+  document.head.appendChild(cssEl);
 }
 
 function uniqueSorted(arr) {
@@ -120,7 +160,7 @@ function render(items) {
     .map(
       (f) => `
     <article class="font-card" data-id="${f.id}">
-      <div class="font-preview" style="font-family: '${f.googleFontFamily}', sans-serif; font-size: ${size}px;">
+      <div class="font-preview" style="font-family: '${familyOf(f)}', sans-serif; font-size: ${size}px;">
         ${escapeHtml(previewText)}
       </div>
       <div class="font-meta">
@@ -179,35 +219,42 @@ async function downloadZip(font, btnEl) {
 
   try {
     labelEl.textContent = "준비 중...";
-    const cssUrl = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(font.googleFontFamily)}:wght@${(font.weights || [400]).join(";")}&display=swap`;
-    const cssRes = await fetch(cssUrl, {
-      headers: { "User-Agent": "Mozilla/5.0" },
-    });
-    const cssText = await cssRes.text();
-
-    const fontUrls = [
-      ...new Set([...cssText.matchAll(/url\((https:\/\/[^)]+\.woff2)\)/g)].map((m) => m[1])),
-    ];
-    if (!fontUrls.length) throw new Error("폰트 URL을 찾을 수 없습니다");
-
-    labelEl.textContent = "폰트 받는 중...";
     const zip = new JSZip();
     const folderName = font.englishName.replace(/[^a-zA-Z0-9-]/g, "-");
 
-    for (let i = 0; i < fontUrls.length; i++) {
-      const u = fontUrls[i];
-      const buf = await (await fetch(u)).arrayBuffer();
-      const wMatch = cssText.match(new RegExp(`font-weight: (\\d+);[\\s\\S]*?url\\(${u.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\$&")}\\)`));
-      const weight = wMatch ? wMatch[1] : `${400 + i}`;
-      zip.file(`${folderName}/${folderName}-${weight}.woff2`, buf);
+    if (font.localFiles && font.localFiles.length) {
+      labelEl.textContent = "폰트 읽는 중...";
+      for (const lf of font.localFiles) {
+        const url = encodePath(lf.path);
+        const buf = await (await fetch(url)).arrayBuffer();
+        const basename = lf.path.split("/").pop();
+        zip.file(`${folderName}/${basename}`, buf);
+      }
+    } else if (font.googleFontFamily) {
+      const cssUrl = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(font.googleFontFamily)}:wght@${(font.weights || [400]).join(";")}&display=swap`;
+      const cssRes = await fetch(cssUrl);
+      const cssText = await cssRes.text();
+      const fontUrls = [
+        ...new Set([...cssText.matchAll(/url\((https:\/\/[^)]+\.woff2)\)/g)].map((m) => m[1])),
+      ];
+      if (!fontUrls.length) throw new Error("폰트 URL을 찾을 수 없습니다");
+      labelEl.textContent = "폰트 받는 중...";
+      for (let i = 0; i < fontUrls.length; i++) {
+        const u = fontUrls[i];
+        const buf = await (await fetch(u)).arrayBuffer();
+        const wMatch = cssText.match(new RegExp(`font-weight: (\\d+);[\\s\\S]*?url\\(${u.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\$&")}\\)`));
+        const weight = wMatch ? wMatch[1] : `${400 + i}`;
+        zip.file(`${folderName}/${folderName}-${weight}.woff2`, buf);
+      }
+    } else {
+      throw new Error("폰트 파일 정보가 없습니다");
     }
 
     labelEl.textContent = "미리보기 만드는 중...";
     const png = await renderPreviewPNG(font);
     zip.file(`${folderName}/preview.png`, png);
 
-    const readme = buildReadme(font);
-    zip.file(`${folderName}/README.txt`, readme);
+    zip.file(`${folderName}/README.txt`, buildReadme(font));
 
     labelEl.textContent = "압축 중...";
     const blob = await zip.generateAsync({ type: "blob" });
@@ -224,7 +271,8 @@ async function downloadZip(font, btnEl) {
 }
 
 async function renderPreviewPNG(font) {
-  await document.fonts.load(`64px "${font.googleFontFamily}"`);
+  const family = familyOf(font);
+  await document.fonts.load(`64px "${family}"`);
   const text = previewEl.value || DEFAULT_PREVIEW[font.language] || font.name;
 
   const dpr = 2;
@@ -252,10 +300,10 @@ async function renderPreviewPNG(font) {
 
   ctx.fillStyle = "#111827";
   let fontSize = 96;
-  ctx.font = `${fontSize}px "${font.googleFontFamily}"`;
+  ctx.font = `${fontSize}px "${family}"`;
   while (ctx.measureText(text).width > W - 120 && fontSize > 24) {
     fontSize -= 4;
-    ctx.font = `${fontSize}px "${font.googleFontFamily}"`;
+    ctx.font = `${fontSize}px "${family}"`;
   }
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
