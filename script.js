@@ -1,6 +1,6 @@
 const listEl = document.getElementById("fontList");
 const searchEl = document.getElementById("searchInput");
-const categoryEl = document.getElementById("categoryFilter");
+const categoryChipsEl = document.getElementById("categoryChips");
 const licenseEl = document.getElementById("licenseFilter");
 const previewEl = document.getElementById("previewInput");
 const sizeEl = document.getElementById("sizeRange");
@@ -11,6 +11,7 @@ const toastEl = document.getElementById("toast");
 
 let fonts = [];
 let currentLang = "ko";
+let currentCategory = "";
 
 const DEFAULT_PREVIEW = {
   ko: "다람쥐 헌 쳇바퀴에 타고파",
@@ -19,7 +20,7 @@ const DEFAULT_PREVIEW = {
 
 async function loadFonts() {
   try {
-    const res = await fetch("fonts.json?v=3");
+    const res = await fetch("fonts.json?v=4");
     fonts = await res.json();
     injectGoogleFonts();
     refreshForLang();
@@ -60,11 +61,14 @@ function uniqueSorted(arr) {
 
 function refreshForLang() {
   const langFonts = fonts.filter((f) => f.language === currentLang);
+  const categories = uniqueSorted(langFonts.map((f) => f.category));
 
-  categoryEl.innerHTML = '<option value="">전체 분류</option>';
-  uniqueSorted(langFonts.map((f) => f.category)).forEach((c) =>
-    categoryEl.add(new Option(c, c))
-  );
+  currentCategory = "";
+  categoryChipsEl.innerHTML =
+    `<button class="cat-chip active" data-cat="" type="button">전체</button>` +
+    categories
+      .map((c) => `<button class="cat-chip" data-cat="${c}" type="button">${c}</button>`)
+      .join("");
 
   licenseEl.innerHTML = '<option value="">전체 라이선스</option>';
   uniqueSorted(langFonts.map((f) => f.license)).forEach((l) =>
@@ -131,12 +135,11 @@ function render(items) {
 
 function applyFilters() {
   const q = searchEl.value.trim().toLowerCase();
-  const category = categoryEl.value;
   const license = licenseEl.value;
 
   const filtered = fonts.filter((f) => {
     if (f.language !== currentLang) return false;
-    if (category && f.category !== category) return false;
+    if (currentCategory && f.category !== currentCategory) return false;
     if (license && f.license !== license) return false;
     if (q) {
       const hay = `${f.name} ${f.englishName} ${f.designer} ${(f.tags || []).join(" ")}`.toLowerCase();
@@ -301,7 +304,15 @@ langTabsEl.addEventListener("click", (e) => {
 });
 
 searchEl.addEventListener("input", applyFilters);
-categoryEl.addEventListener("change", applyFilters);
+categoryChipsEl.addEventListener("click", (e) => {
+  const chip = e.target.closest(".cat-chip");
+  if (!chip) return;
+  [...categoryChipsEl.querySelectorAll(".cat-chip")].forEach((c) =>
+    c.classList.toggle("active", c === chip)
+  );
+  currentCategory = chip.dataset.cat;
+  applyFilters();
+});
 licenseEl.addEventListener("change", applyFilters);
 previewEl.addEventListener("input", applyFilters);
 sizeEl.addEventListener("input", () => {

@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>폰투 — 무료 폰트 다운로드</title>
-  <link rel="stylesheet" href="style.css?v=3" />
+  <link rel="stylesheet" href="style.css?v=4" />
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 </head>
 <body>
@@ -19,12 +19,11 @@
       <button class="lang-tab" data-lang="en" role="tab" aria-selected="false">영문</button>
     </nav>
 
+    <nav class="category-chips" id="categoryChips" role="tablist" aria-label="분류"></nav>
+
     <section class="filters">
       <input type="text" id="searchInput" placeholder="폰트 이름, 디자이너, 태그 검색" />
       <div class="filter-row">
-        <select id="categoryFilter">
-          <option value="">전체 분류</option>
-        </select>
         <select id="licenseFilter">
           <option value="">전체 라이선스</option>
         </select>
@@ -49,6 +48,6 @@
 
   <div id="toast" class="toast hidden"></div>
 
-  <script src="script.js?v=3"></script>
+  <script src="script.js?v=4"></script>
 </body>
 </html>
