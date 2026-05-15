@@ -3,16 +3,22 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>폰투 — 무료 한글 폰트 다운로드</title>
-  <link rel="stylesheet" href="style.css?v=1" />
+  <title>폰투 — 무료 폰트 다운로드</title>
+  <link rel="stylesheet" href="style.css?v=2" />
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 </head>
 <body>
   <header>
     <h1 class="logo">폰투</h1>
-    <p class="tagline">상업적 사용 가능한 무료 한글 폰트 모음</p>
+    <p class="tagline">상업적 사용 가능한 무료 폰트 모음</p>
   </header>
 
   <main>
+    <nav class="lang-tabs" id="langTabs" role="tablist">
+      <button class="lang-tab active" data-lang="ko" role="tab" aria-selected="true">한글</button>
+      <button class="lang-tab" data-lang="en" role="tab" aria-selected="false">영문</button>
+    </nav>
+
     <section class="filters">
       <input type="text" id="searchInput" placeholder="폰트 이름, 디자이너, 태그 검색" />
       <div class="filter-row">
@@ -25,10 +31,10 @@
       </div>
       <div class="preview-row">
         <label for="previewInput">미리보기 텍스트</label>
-        <input type="text" id="previewInput" value="다람쥐 헌 쳇바퀴에 타고파" maxlength="40" />
+        <input type="text" id="previewInput" value="다람쥐 헌 쳇바퀴에 타고파" maxlength="60" />
         <div class="size-control">
-          <input type="range" id="sizeRange" min="16" max="72" value="32" />
-          <span id="sizeLabel">32px</span>
+          <input type="range" id="sizeRange" min="16" max="80" value="36" />
+          <span id="sizeLabel">36px</span>
         </div>
       </div>
       <div class="result-count" id="resultCount"></div>
@@ -41,6 +47,8 @@
     <small>© 2026 폰투 · 폰트 저작권은 각 제작자에게 있습니다</small>
   </footer>
 
-  <script src="script.js?v=1"></script>
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="script.js?v=2"></script>
 </body>
 </html>
