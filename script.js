@@ -19,7 +19,7 @@ const DEFAULT_PREVIEW = {
 
 async function loadFonts() {
   try {
-    const res = await fetch("fonts.json?v=2");
+    const res = await fetch("fonts.json?v=3");
     fonts = await res.json();
     injectGoogleFonts();
     refreshForLang();
