@@ -1,3 +1,22 @@
+const themeToggleEl = document.getElementById("themeToggle");
+const THEME_KEY = "fontu:theme";
+
+function initTheme() {
+  const saved = localStorage.getItem(THEME_KEY);
+  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+  const theme = saved || (prefersDark ? "dark" : "light");
+  document.documentElement.setAttribute("data-theme", theme);
+}
+
+initTheme();
+
+themeToggleEl.addEventListener("click", () => {
+  const current = document.documentElement.getAttribute("data-theme") || "light";
+  const next = current === "dark" ? "light" : "dark";
+  document.documentElement.setAttribute("data-theme", next);
+  localStorage.setItem(THEME_KEY, next);
+});
+
 const listEl = document.getElementById("fontList");
 const searchEl = document.getElementById("searchInput");
 const categoryChipsEl = document.getElementById("categoryChips");
@@ -20,7 +39,7 @@ const DEFAULT_PREVIEW = {
 
 async function loadFonts() {
   try {
-    const res = await fetch("fonts.json?v=4");
+    const res = await fetch("fonts.json?v=5");
     fonts = await res.json();
     injectGoogleFonts();
     refreshForLang();

@@ -4,11 +4,22 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>폰투 — 무료 폰트 다운로드</title>
-  <link rel="stylesheet" href="style.css?v=4" />
+  <script>
+    (function () {
+      var saved = localStorage.getItem("fontu:theme");
+      var dark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      document.documentElement.setAttribute("data-theme", saved || (dark ? "dark" : "light"));
+    })();
+  </script>
+  <link rel="stylesheet" href="style.css?v=5" />
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 </head>
 <body>
   <header>
+    <button class="theme-toggle" id="themeToggle" type="button" aria-label="테마 전환">
+      <span class="theme-icon icon-sun" aria-hidden="true">☀</span>
+      <span class="theme-icon icon-moon" aria-hidden="true">☾</span>
+    </button>
     <h1 class="logo">폰투</h1>
     <p class="tagline">상업적 사용 가능한 무료 폰트 모음</p>
   </header>
@@ -48,6 +59,6 @@
 
   <div id="toast" class="toast hidden"></div>
 
-  <script src="script.js?v=4"></script>
+  <script src="script.js?v=5"></script>
 </body>
 </html>
