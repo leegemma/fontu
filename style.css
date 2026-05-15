@@ -1,4 +1,5 @@
 :root {
+  color-scheme: light;
   --bg: #fafafa;
   --text: #18181b;
   --muted: #6b6b73;
@@ -22,6 +23,7 @@
 }
 
 [data-theme="dark"] {
+  color-scheme: dark;
   --bg: #0e0e11;
   --text: #f4f4f5;
   --muted: #a1a1aa;
@@ -193,8 +195,10 @@ main {
   border: 1px solid var(--border);
   border-radius: 12px;
   background: var(--card);
+  color: var(--text);
   outline: none;
 }
+#searchInput::placeholder { color: var(--muted); opacity: 0.8; }
 #searchInput:focus { border-color: var(--accent); }
 
 .filter-row {
@@ -211,11 +215,13 @@ main {
   border: 1px solid var(--border);
   border-radius: 10px;
   background: var(--card);
+  color: var(--text);
   outline: none;
   appearance: none;
   cursor: pointer;
 }
 .filter-row select:focus { border-color: var(--accent); }
+.filter-row select option { background: var(--card); color: var(--text); }
 
 .preview-row {
   margin-top: 12px;
@@ -239,8 +245,11 @@ main {
   font-size: 14px;
   border: 1px solid var(--border);
   border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
   outline: none;
 }
+#previewInput::placeholder { color: var(--muted); opacity: 0.8; }
 #previewInput:focus { border-color: var(--accent); }
 
 .size-control {
